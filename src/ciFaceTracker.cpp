@@ -61,7 +61,7 @@ void ciFaceTracker::setup() {
 	wSize2[1] = 9;
 	wSize2[2] = 7;
     
-    path tBasePath = path( ci::app::AppBasic::getResourcePath() );
+    /*path tBasePath = path ( ci::app::getResourcePath(".") );
     
     path tFtPath  = tBasePath / "face2.tracker";
     path tTriPath = tBasePath / "face.tri";
@@ -69,7 +69,12 @@ void ciFaceTracker::setup() {
 	
 	tracker.Load( tFtPath.string().c_str() );
 	tri = IO::LoadTri( tTriPath.string().c_str() );
-	con = IO::LoadCon( tConPath.string().c_str() );  // not being used right now
+	con = IO::LoadCon( tConPath.string().c_str() );  // not being used right now*/
+
+	
+	tracker.Load("C:\\dev\\CinderProject\\blocks\\ciFaceTracker\\libs\\FaceTracker\\model\\face2.tracker");
+	tri = IO::LoadTri("C:\\dev\\CinderProject\\blocks\\ciFaceTracker\\libs\\FaceTracker\\model\\face.tri");
+	con = IO::LoadCon("C:\\dev\\CinderProject\\blocks\\ciFaceTracker\\libs\\FaceTracker\\model\\face.con");
 }
 
 bool ciFaceTracker::update(cv::Mat image) {
@@ -129,7 +134,7 @@ void ciFaceTracker::draw(bool drawLabels) const{
 			if(getVisibility(i)) {
                 stringstream ss;
                 ss << i;
-                gl::drawString( ss.str(), getImagePoint(i).xy() );
+               // gl::drawString( ss.str(), getImagePoint(i).xy() );
 			}
 		}
 	}
@@ -159,54 +164,55 @@ bool ciFaceTracker::getVisibility(int i) const {
 	return (visi.it(i, 0) != 0);
 }
 
-vector<Vec3f> ciFaceTracker::getImagePoints() const {
+vector<vec3> ciFaceTracker::getImagePoints() const {
 	int n = size();
-	vector<Vec3f> imagePoints(n);
+	vector<vec3> imagePoints(n);
 	for(int i = 0; i < n; i++) {
 		imagePoints[i] = getImagePoint(i);
 	}
 	return imagePoints;
 }
 
-vector<Vec3f> ciFaceTracker::getObjectPoints() const {
+vector<vec3> ciFaceTracker::getObjectPoints() const {
 	int n = size();
-	vector<Vec3f> objectPoints(n);
+	vector<vec3> objectPoints(n);
 	for(int i = 0; i < n; i++) {
 		objectPoints[i] = getObjectPoint(i);
 	}
 	return objectPoints;
 }
 
-vector<Vec3f> ciFaceTracker::getMeanObjectPoints() const {
+vector<vec3> ciFaceTracker::getMeanObjectPoints() const {
 	int n = size();
-	vector<Vec3f> meanObjectPoints(n);
+	vector<vec3> meanObjectPoints(n);
 	for(int i = 0; i < n; i++) {
 		meanObjectPoints[i] = getMeanObjectPoint(i);
 	}
 	return meanObjectPoints;
 }
 
-Vec3f ciFaceTracker::getImagePoint(int i) const {
+vec3 ciFaceTracker::getImagePoint(int i) const {
 	if(failed) {
-		return Vec3f::zero();
+		return vec3(0,0,0);
 	}
 	const cv::Mat& shape = tracker._shape;
 	int n = shape.rows / 2;
-	return Vec3f(shape.db(i, 0), shape.db(i + n, 0), 0.0) / rescale;
+	//return vec3(shape.db(i, 0), shape.db(i + n, 0), 0.0) / rescale;
+	return vec3(shape.db(i, 0), shape.db(i + n, 0), 0.0) / float(rescale);
 }
 
-Vec3f ciFaceTracker::getObjectPoint(int i) const {
+vec3 ciFaceTracker::getObjectPoint(int i) const {
 	if(failed) {
-		return Vec3f();
+		return vec3();
 	}	
 	int n = objectPoints.rows / 3;
-	return Vec3f(objectPoints.db(i,0), objectPoints.db(i+n,0), objectPoints.db(i+n+n,0));
+	return vec3(objectPoints.db(i,0), objectPoints.db(i+n,0), objectPoints.db(i+n+n,0));
 }
 
-Vec3f ciFaceTracker::getMeanObjectPoint(int i) const {
+vec3 ciFaceTracker::getMeanObjectPoint(int i) const {
 	const cv::Mat& mean = tracker._clm._pdm._M;
 	int n = mean.rows / 3;
-	return Vec3f(mean.db(i,0), mean.db(i+n,0), mean.db(i+n+n,0));
+	return vec3(mean.db(i,0), mean.db(i+n,0), mean.db(i+n+n,0));
 }
 
 TriMesh ciFaceTracker::getImageMesh() const {
@@ -221,14 +227,17 @@ TriMesh ciFaceTracker::getMeanObjectMesh() const {
 	return getMesh(getMeanObjectPoints());
 }
 
-TriMesh ciFaceTracker::getMesh(vector<Vec3f> points) const {
+TriMesh ciFaceTracker::getMesh(vector<vec3> points) const {
 	TriMesh mesh;
 	if(!failed) {
 		int n = size();
 		for(int i = 0; i < n; i++) {
-            Vec3f tPt = points[i];
-			mesh.appendVertex( points[i] );
-			mesh.appendTexCoord( getImagePoint(i).xy() );
+			vec3 tPt = points[i];
+			vec3 imagePt = getImagePoint(i);
+			vec2 texCoord = vec2(imagePt.x, imagePt.y);
+			//mesh.appendVertex( points[i] );
+			mesh.appendPosition( points[i] );
+			mesh.appendTexCoord(texCoord);
 		}
 		addTriangleIndices(mesh);
 	}
@@ -239,9 +248,11 @@ const cv::Mat& ciFaceTracker::getObjectPointsMat() const {
 	return objectPoints;
 }
 
-Vec2f ciFaceTracker::getPosition() const {
+vec2 ciFaceTracker::getPosition() const {
 	const cv::Mat& pose = tracker._clm._pglobl;
-	return Vec2f(pose.db(4,0), pose.db(5,0)) / rescale;
+	// possible precision issue
+	//return vec2(pose.db(4, 0), pose.db(5, 0)) / rescale;
+	return vec2(pose.db(4, 0), pose.db(5, 0)) / float(rescale);
 }
 
  // multiply by ~20-23 to get pixel units (+/-20 units in the x axis, +23/-18 on the y axis)
@@ -250,15 +261,16 @@ float ciFaceTracker::getScale() const {
 	return pose.db(0,0) / rescale;
 }
 
-Vec3f ciFaceTracker::getOrientation() const {
+vec3 ciFaceTracker::getOrientation() const {
 	const cv::Mat& pose = tracker._clm._pglobl;
-	Vec3f euler(pose.db(1, 0), pose.db(2, 0), pose.db(3, 0));
+	vec3 euler(pose.db(1, 0), pose.db(2, 0), pose.db(3, 0));
 	return euler;
 }
 
-Matrix44f ciFaceTracker::getRotationMatrix() const {
-	Vec3f euler = getOrientation();
-	Matrix44f matrix = Matrix44f::createRotation(euler);
+mat4 ciFaceTracker::getRotationMatrix() const {
+	vec3 euler = getOrientation();
+	mat4 matrix = glm::eulerAngleXYZ( euler.x, euler.y, euler.z);
+	//mat4 matrix = mat4::createRotation(euler);
     return matrix;
 }
 
@@ -286,15 +298,16 @@ Path2d ciFaceTracker::getMeanObjectFeature(Feature feature) const {
 	return getFeature(feature, getMeanObjectPoints());
 }
 
-Path2d ciFaceTracker::getFeature(Feature feature, vector<Vec3f> points) const {
+Path2d ciFaceTracker::getFeature(Feature feature, vector<vec3> points) const {
 	Path2d polyline;
 	if(!failed) {
 		vector<int> indices = getFeatureIndices(feature);
 		for(int i = 0; i < indices.size(); i++) {
 			int cur = indices[i];
 			if(useInvisible || getVisibility(cur)) {
-                if(polyline.empty()) { polyline.moveTo( points[cur].xy() ); }
-                else                 { polyline.lineTo( points[cur].xy() ); }
+				vec2 pt = vec2(points[cur].x, points[cur].y);
+                if(polyline.empty()) { polyline.moveTo( pt ); }
+                else                 { polyline.lineTo( pt ); }
 			}
 		}
 		switch(feature) {

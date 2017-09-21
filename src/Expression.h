@@ -3,7 +3,7 @@
 #include <iostream>
 #include <fstream>
 
-#include "cinder/app/AppBasic.h"
+#include "cinder/app/App.h"
 #include "cinder/gl/gl.h"
 #include "cinder/Vector.h"
 #include "cinder/TriMesh.h"

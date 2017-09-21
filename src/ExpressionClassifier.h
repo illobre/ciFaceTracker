@@ -3,7 +3,6 @@
 #include <iostream>
 #include <sstream>
 #include <iterator>
-#include <boost/filesystem.hpp>
 
 #include "Expression.h"
 
@@ -13,7 +12,6 @@ class ciFaceTracker;
 using namespace ci;
 using namespace ci::app;
 using namespace std;
-using namespace boost::filesystem;
 
 class ExpressionClassifier {
 public:
