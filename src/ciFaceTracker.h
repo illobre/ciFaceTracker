@@ -25,7 +25,7 @@
 
 #include "CinderOpenCv.h"
 
-#include "FaceTracker\Tracker.h"
+#include "FaceTracker/Tracker.h"
 #include "ExpressionClassifier.h"
 
 using namespace ci;

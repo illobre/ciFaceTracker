@@ -62,9 +62,18 @@ void ciFaceTracker::setup() {
 	wSize2[1] = 9;
 	wSize2[2] = 7;
 
-	tracker.Load( getAssetPath("face2.tracker").u8string().c_str() );
-	tri = IO::LoadTri( getAssetPath("face.tri").u8string().c_str() );
-	con = IO::LoadCon( getAssetPath("face.con").u8string().c_str() );
+    
+#ifdef TARGET_OS_OSX 
+    tracker.Load( getAssetPath("face2.tracker").c_str() );
+    tri = IO::LoadTri( getAssetPath("face.tri").c_str() );
+    con = IO::LoadCon( getAssetPath("face.con").c_str() );
+#else
+    tracker.Load( getAssetPath("face2.tracker").u8string().c_str() );
+    tri = IO::LoadTri( getAssetPath("face.tri").u8string().c_str() );
+    con = IO::LoadCon( getAssetPath("face.con").u8string().c_str() );
+#endif
+    
+	
 }
 
 bool ciFaceTracker::update(cv::Mat image) {
