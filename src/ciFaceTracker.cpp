@@ -1,4 +1,5 @@
 #include "ciFaceTracker.h"
+#include "Resources.h"
 
 // can be compiled with OpenMP for even faster threaded execution
 
@@ -60,21 +61,10 @@ void ciFaceTracker::setup() {
 	wSize2[0] = 11;
 	wSize2[1] = 9;
 	wSize2[2] = 7;
-    
-    /*path tBasePath = path ( ci::app::getResourcePath(".") );
-    
-    path tFtPath  = tBasePath / "face2.tracker";
-    path tTriPath = tBasePath / "face.tri";
-    path tConPath = tBasePath / "face.con";
-	
-	tracker.Load( tFtPath.string().c_str() );
-	tri = IO::LoadTri( tTriPath.string().c_str() );
-	con = IO::LoadCon( tConPath.string().c_str() );  // not being used right now*/
 
-	
-	tracker.Load("C:\\dev\\CinderProject\\blocks\\ciFaceTracker\\libs\\FaceTracker\\model\\face2.tracker");
-	tri = IO::LoadTri("C:\\dev\\CinderProject\\blocks\\ciFaceTracker\\libs\\FaceTracker\\model\\face.tri");
-	con = IO::LoadCon("C:\\dev\\CinderProject\\blocks\\ciFaceTracker\\libs\\FaceTracker\\model\\face.con");
+	tracker.Load( getAssetPath("face2.tracker").u8string().c_str() );
+	tri = IO::LoadTri( getAssetPath("face.tri").u8string().c_str() );
+	con = IO::LoadCon( getAssetPath("face.con").u8string().c_str() );
 }
 
 bool ciFaceTracker::update(cv::Mat image) {
